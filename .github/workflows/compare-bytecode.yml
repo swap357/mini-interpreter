@@ -30,7 +30,7 @@ jobs:
               > out-${{ matrix.python-version }}/$(basename "$f").json
           done
       - name: Upload disassembly
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: disasm-${{ matrix.python-version }}
           path: out-${{ matrix.python-version }}
@@ -40,12 +40,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download 3.13 artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: disasm-3.13
           path: disasm/3.13
       - name: Download 3.14 artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: disasm-3.14
           path: disasm/3.14
@@ -56,7 +56,7 @@ jobs:
             diff -u disasm/3.13/$(basename "$f").json disasm/3.14/$(basename "$f").json || true
           done >> BYTECODE_DIFF.md
       - name: Upload diff report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bytecode-diffs
           path: BYTECODE_DIFF.md

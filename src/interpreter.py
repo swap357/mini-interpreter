@@ -21,8 +21,11 @@ class MiniInterpreter:
             self.pc += 1
             op_name = instr.opname
             arg = instr.arg
-            handler = getattr(self, f'op_{op_name}', self.op_default)
-            handler(arg, consts, names)
+            handler = getattr(self, f'op_{op_name}', None)
+            if handler is None:
+                self.op_default(op_name, arg, consts, names)
+            else:
+                handler(arg, consts, names)
 
     # Opcode handlers -----------------------------------------------------
     def op_LOAD_CONST(self, arg, consts, names):
@@ -60,9 +63,11 @@ class MiniInterpreter:
     def op_CACHE(self, arg, consts, names):
         pass
 
+    def op_PRECALL(self, arg, consts, names):
+        pass
+
     def op_RETURN_VALUE(self, arg, consts, names):
-        value = self.stack.pop()
-        print(value)
+        self.stack.pop()
         self.pc = len(self.code.co_code)  # exit loop
 
     def op_RETURN_CONST(self, arg, consts, names):
@@ -75,8 +80,8 @@ class MiniInterpreter:
     def op_RESUME_QUICK(self, arg, consts, names):
         pass
 
-    def op_default(self, arg, consts, names):
-        raise NotImplementedError(f"Opcode not implemented: {opcode.opname[self.code.co_code[self.pc-1]]}")
+    def op_default(self, op_name, arg, consts, names):
+        raise NotImplementedError(f"Opcode not implemented: {op_name}")
 
 
 def main(path: str):
