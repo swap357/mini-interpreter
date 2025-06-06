@@ -49,7 +49,9 @@ class MiniInterpreter:
     def op_CALL(self, arg, consts, names):
         args = [self.stack.pop() for _ in range(arg)]
         func = self.stack.pop()
-        if self.stack and self.stack[-1] is None:
+        if func is None:
+            func = self.stack.pop()
+        elif self.stack and self.stack[-1] is None:
             self.stack.pop()
         result = func(*reversed(args))
         self.stack.append(result)
