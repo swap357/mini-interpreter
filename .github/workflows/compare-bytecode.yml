@@ -9,7 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.13', '3.14']
+        # Use dev versions since final releases might not be available on
+        # GitHub's runners yet.
+        python-version: ['3.13-dev', '3.14-dev']
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
