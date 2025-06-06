@@ -1,0 +1,60 @@
+name: Compare Python 3.13 vs 3.14 Bytecode
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-disassemble:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.13', '3.14']
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: pip install -U pytest
+      - name: Run interpreter tests
+        run: pytest -q
+      - name: Disassemble samples
+        run: |
+          mkdir out-${{ matrix.python-version }}
+          for f in samples/*.py; do
+            python scripts/disassemble.py "$f" \
+              > out-${{ matrix.python-version }}/$(basename "$f").json
+          done
+      - name: Upload disassembly
+        uses: actions/upload-artifact@v3
+        with:
+          name: disasm-${{ matrix.python-version }}
+          path: out-${{ matrix.python-version }}
+
+  diff-bytecode:
+    needs: build-and-disassemble
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download 3.13 artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: disasm-3.13
+          path: disasm/3.13
+      - name: Download 3.14 artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: disasm-3.14
+          path: disasm/3.14
+      - name: Compare JSON outputs
+        run: |
+          echo "## Bytecode diffs (3.13 → 3.14)" > BYTECODE_DIFF.md
+          for f in samples/*.py; do
+            diff -u disasm/3.13/$(basename "$f").json disasm/3.14/$(basename "$f").json || true
+          done >> BYTECODE_DIFF.md
+      - name: Upload diff report
+        uses: actions/upload-artifact@v3
+        with:
+          name: bytecode-diffs
+          path: BYTECODE_DIFF.md
