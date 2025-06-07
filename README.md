@@ -16,7 +16,12 @@ versions.
    ```bash
    python src/interpreter.py samples/hello.py
    ```
-3. Inspect bytecode differences by running the GitHub Actions workflow which
+3. Run microbenchmarks:
+   ```bash
+   python scripts/microbench.py results_dir samples/hello.py
+   ```
+   This will output a JSON file with timing information.
+4. Inspect bytecode differences by running the GitHub Actions workflow which
    disassembles the samples on both Python 3.13 and 3.14 and produces a diff
    report.
 
