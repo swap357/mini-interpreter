@@ -10,10 +10,13 @@ def test_microbench_runs(tmp_path):
         sys.executable,
         'scripts/microbench.py',
         str(outdir),
-        'samples/hello.py'
+        'samples/hello.py',
+        '--repeat', '1',
+        '--number', '1',
     ])
     result_file = outdir / 'microbench_results.json'
     assert result_file.exists()
     data = json.loads(result_file.read_text())
     assert isinstance(data, list)
     assert data and data[0]['sample'].endswith('hello.py')
+    assert 'stdev' in data[0]

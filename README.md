@@ -18,7 +18,7 @@ versions.
    ```
 3. Run microbenchmarks:
    ```bash
-   python scripts/microbench.py results_dir samples/hello.py
+   python scripts/microbench.py results_dir samples/hello.py --repeat 3 --number 1
    ```
    This will output a JSON file with timing information.
 4. Inspect bytecode differences by running the GitHub Actions workflow which
