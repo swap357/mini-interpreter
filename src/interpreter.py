@@ -11,13 +11,14 @@ class MiniInterpreter:
         self.code = code
         self.stack = []
         self.pc = 0
+        self.instructions = list(dis.Bytecode(self.code))
+        self.offset_map = {instr.offset: i for i, instr in enumerate(self.instructions)}
 
     def run(self):
         consts = self.code.co_consts
         names = self.code.co_names
-        instructions = list(dis.Bytecode(self.code))
-        while self.pc < len(instructions):
-            instr = instructions[self.pc]
+        while self.pc < len(self.instructions):
+            instr = self.instructions[self.pc]
             self.pc += 1
             op_name = instr.opname
             arg = instr.arg
@@ -55,6 +56,57 @@ class MiniInterpreter:
             self.stack.pop()
         result = func(*reversed(args))
         self.stack.append(result)
+
+    def op_GET_ITER(self, arg, consts, names):
+        iterable = self.stack.pop()
+        self.stack.append(iter(iterable))
+
+    def op_FOR_ITER(self, arg, consts, names):
+        iterator = self.stack[-1]
+        try:
+            value = next(iterator)
+            self.stack.append(value)
+        except StopIteration:
+            self.stack.pop()
+            target = self.instructions[self.pc - 1].argval
+            self.pc = self.offset_map[target]
+
+    def op_JUMP_BACKWARD(self, arg, consts, names):
+        target = self.instructions[self.pc - 1].argval
+        self.pc = self.offset_map[target]
+
+    def op_COMPARE_OP(self, arg, consts, names):
+        b = self.stack.pop()
+        a = self.stack.pop()
+        op = dis.cmp_op[arg]
+        if op == '>':
+            self.stack.append(a > b)
+        elif op == '<':
+            self.stack.append(a < b)
+        elif op == '==':
+            self.stack.append(a == b)
+        elif op == '!=':
+            self.stack.append(a != b)
+        elif op == '>=':
+            self.stack.append(a >= b)
+        elif op == '<=':
+            self.stack.append(a <= b)
+        else:
+            raise NotImplementedError(f"COMPARE_OP {op}")
+
+    def op_POP_JUMP_FORWARD_IF_FALSE(self, arg, consts, names):
+        value = self.stack.pop()
+        if not value:
+            target = self.instructions[self.pc - 1].argval
+            self.pc = self.offset_map[target]
+
+    def op_BINARY_OP(self, arg, consts, names):
+        b = self.stack.pop()
+        a = self.stack.pop()
+        if arg in (0, 13):  # add or inplace add
+            self.stack.append(a + b)
+        else:
+            raise NotImplementedError(f"BINARY_OP arg {arg}")
 
     def op_RESUME(self, arg, consts, names):
         pass
