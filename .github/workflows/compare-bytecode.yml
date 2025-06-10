@@ -9,9 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Use dev versions since final releases might not be available on
-        # GitHub's runners yet.
-        python-version: ['3.13-dev', '3.14-dev']
+        # Test against the latest stable Python 3.13 release and the
+        # development version of 3.14.
+        python-version: ['3.13.3', '3.14-dev']
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -43,8 +43,8 @@ jobs:
       - name: Download 3.13 artifacts
         uses: actions/download-artifact@v4
         with:
-          name: disasm-3.13-dev
-          path: disasm/3.13-dev
+          name: disasm-3.13.3
+          path: disasm/3.13.3
       - name: Download 3.14 artifacts
         uses: actions/download-artifact@v4
         with:
@@ -52,9 +52,9 @@ jobs:
           path: disasm/3.14-dev
       - name: Compare JSON outputs
         run: |
-          echo "## Bytecode diffs (3.13 → 3.14)" > BYTECODE_DIFF.md
+          echo "## Bytecode diffs (3.13.3 → 3.14-dev)" > BYTECODE_DIFF.md
           for f in samples/*.py; do
-            diff -u disasm/3.13-dev/$(basename "$f").json disasm/3.14-dev/$(basename "$f").json || true
+            diff -u disasm/3.13.3/$(basename "$f").json disasm/3.14-dev/$(basename "$f").json || true
           done >> BYTECODE_DIFF.md
       - name: Upload diff report
         uses: actions/upload-artifact@v4
