@@ -65,8 +65,8 @@ class MiniInterpreter:
             value = next(iterator)
             self.stack.append(value)
         except StopIteration:
-            self.stack.pop()
             self.pc = target
+            self.stack.append(None)
 
     def op_JUMP_BACKWARD(self, arg, consts, names):
         instr = self.instructions[self.pc - 1]
@@ -74,7 +74,9 @@ class MiniInterpreter:
         self.pc = target
 
     def op_END_FOR(self, arg, consts, names):
-        pass
+        # iterator is below the sentinel pushed by FOR_ITER
+        if len(self.stack) >= 2:
+            self.stack.pop(-2)
 
     def op_COMPARE_OP(self, arg, consts, names):
         instr = self.instructions[self.pc - 1]
