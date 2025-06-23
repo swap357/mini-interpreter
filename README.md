@@ -23,8 +23,10 @@ versions.
    This will output a JSON file with timing information.
 4. Inspect bytecode differences by running the GitHub Actions workflow which
    disassembles the samples on both Python 3.13.3 and 3.14-dev and produces a
-   `BYTECODE_DIFF.md` report. The workflow uploads this file as the
-   `bytecode-diffs` artifact so you can view it directly from the Actions tab.
+   `BYTECODE_DIFF.md` report. The report now includes the source code of each
+   sample for context along with the bytecode diff. The workflow uploads this
+   file as the `bytecode-diffs` artifact so you can view it directly from the
+   Actions tab.
 
 ## License
 

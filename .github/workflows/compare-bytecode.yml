@@ -48,12 +48,9 @@ jobs:
         with:
           name: disasm-3.14-dev
           path: disasm/3.14-dev
-      - name: Compare JSON outputs
+      - name: Generate diff report
         run: |
-          echo "## Bytecode diffs (3.13.3 → 3.14-dev)" > BYTECODE_DIFF.md
-          for f in samples/*.py; do
-            diff -u disasm/3.13.3/$(basename "$f").json disasm/3.14-dev/$(basename "$f").json || true
-          done >> BYTECODE_DIFF.md
+          python scripts/generate_diff_report.py disasm/3.13.3 disasm/3.14-dev
       - name: Upload diff report
         uses: actions/upload-artifact@v4
         with:
