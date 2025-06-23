@@ -11,13 +11,18 @@ class MiniInterpreter:
         self.code = code
         self.stack = []
         self.pc = 0
+        self.instructions = []
+        self.offset_to_index = {}
 
     def run(self):
         consts = self.code.co_consts
         names = self.code.co_names
-        instructions = list(dis.Bytecode(self.code))
-        while self.pc < len(instructions):
-            instr = instructions[self.pc]
+        self.instructions = list(dis.Bytecode(self.code))
+        self.offset_to_index = {
+            instr.offset: i for i, instr in enumerate(self.instructions)
+        }
+        while self.pc < len(self.instructions):
+            instr = self.instructions[self.pc]
             self.pc += 1
             op_name = instr.opname
             arg = instr.arg
@@ -45,6 +50,58 @@ class MiniInterpreter:
         b = self.stack.pop()
         a = self.stack.pop()
         self.stack.append(a + b)
+
+    # --- Control flow and comparison opcodes ---
+
+    def op_GET_ITER(self, arg, consts, names):
+        iterable = self.stack.pop()
+        self.stack.append(iter(iterable))
+
+    def op_FOR_ITER(self, arg, consts, names):
+        instr = self.instructions[self.pc - 1]
+        target = self.offset_to_index[instr.argval]
+        iterator = self.stack[-1]
+        try:
+            value = next(iterator)
+            self.stack.append(value)
+        except StopIteration:
+            self.stack.pop()
+            self.pc = target
+
+    def op_JUMP_BACKWARD(self, arg, consts, names):
+        instr = self.instructions[self.pc - 1]
+        target = self.offset_to_index[instr.argval]
+        self.pc = target
+
+    def op_END_FOR(self, arg, consts, names):
+        pass
+
+    def op_COMPARE_OP(self, arg, consts, names):
+        instr = self.instructions[self.pc - 1]
+        op = instr.argval
+        b = self.stack.pop()
+        a = self.stack.pop()
+        if op == '<':
+            self.stack.append(a < b)
+        elif op == '<=':
+            self.stack.append(a <= b)
+        elif op == '==':
+            self.stack.append(a == b)
+        elif op == '!=':
+            self.stack.append(a != b)
+        elif op == '>':
+            self.stack.append(a > b)
+        elif op == '>=':
+            self.stack.append(a >= b)
+        else:
+            raise NotImplementedError(f"COMPARE_OP {op}")
+
+    def op_POP_JUMP_IF_FALSE(self, arg, consts, names):
+        value = self.stack.pop()
+        if not value:
+            instr = self.instructions[self.pc - 1]
+            target = self.offset_to_index[instr.argval]
+            self.pc = target
 
     def op_CALL(self, arg, consts, names):
         args = [self.stack.pop() for _ in range(arg)]
