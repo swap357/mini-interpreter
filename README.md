@@ -10,7 +10,7 @@ versions.
 1. Install dependencies and run the tests:
    ```bash
    pip install -U pytest
-   pytest -q
+   pytest -vv --log-cli-level=INFO
    ```
 2. Run the interpreter on a sample:
    ```bash
