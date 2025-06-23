@@ -2,6 +2,8 @@ name: Compare Python 3.13 vs 3.14 Bytecode
 
 on:
   push:
+    branches:
+      - main
   pull_request:
 
 jobs:
